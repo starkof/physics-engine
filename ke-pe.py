@@ -68,3 +68,4 @@ v = velocity_of_falling_object(1000, -100)
 
 plt.plot(v)
 plt.show()
+
