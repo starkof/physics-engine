@@ -1,6 +1,7 @@
 import math
 import scipy.constants as constants
 import matplotlib.pyplot as plt
+import numpy as np
 
 # todo: use numpy for array calculations
 
@@ -25,7 +26,19 @@ def kinetic_energy(m, v):
     return 0.5 * m * v ** 2
 
 
-def velocity_with_acceleration(v_0, a, t):
+def distance(v_0, d_0, a, t):
+    """
+
+    :param v_0: initial velocity (m/s)
+    :param d_0: distance (m)
+    :param a: acceleration (m/s^2)
+    :param t: time in seconds (s)
+    :return: distance travelled in meters
+    """
+    return v_0*t + 0.5*a*t**2 + d_0
+
+
+def velocity(v_0, a, t):
     """
 
     :param v_0: initial velocity (m/s)
@@ -36,36 +49,39 @@ def velocity_with_acceleration(v_0, a, t):
     return v_0 + a*t
 
 
-def velocity_with_distance_and_acceleration(v_0, a, d):
+def final_velocity(v_0, a, d):
     """
 
-    :param v_0: initial velocity
-    :param a: acceleration
-    :param d: distance
+    :param v_0:
+    :param a:
+    :param d:
     :return:
     """
-    return math.sqrt(v_0**2 + 2*a*d)
+    return v_0**2 + 2*a*d
 
 
-def velocity_of_falling_object(initial_height, initial_speed):
-    # todo: calculate elapsed time for each step
-    # todo: the equation used here doesn't account for negative velocities
-    steps = 100
-    step_distance = initial_height/steps
-    velocities = []
+def time_to_fall(v_0, h):
+    """
 
-    # print(initial_speed)
-    velocities.append(initial_speed)
-    for i in range(steps):
-        initial_speed = velocity_with_distance_and_acceleration(initial_speed, constants.g, step_distance)
-        print(initial_speed)
-        velocities.append(initial_speed)
-
-    return velocities
+    :param v_0: velocity (m/s)
+    :param h: height (m)
+    :return: time (s)
+    """
+    v_f = final_velocity(v_0, constants.g, h)
+    return (2*h)/(v_0 + v_f)
 
 
-v = velocity_of_falling_object(1000, -100)
+def simulate(time_step, total_time, initial_velocity, initial_distance, acceleration):
+    t = np.linspace(0, total_time, int(total_time/time_step))
 
-plt.plot(v)
-plt.show()
+    d = distance(initial_velocity, initial_distance, acceleration, t)
+    v = velocity(initial_velocity, acceleration, t)
 
+    fig, axs = plt.subplots(2)
+    axs[0].plot(t, d)
+    axs[1].plot(t, v)
+    plt.show()
+
+
+if __name__ == '__main__':
+    simulate(0.1, 10, 0, 0, constants.g)
