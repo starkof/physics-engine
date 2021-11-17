@@ -93,7 +93,6 @@ def simulate_0d(time_step, total_time, initial_velocity, initial_distance, accel
     mass = 5
     ke = kinetic_energy(mass, v)
     pe = potential_energy(np.max(d) - d, mass)
-    pe = potential_energy(np.max(d) - d, mass)
 
     plot_energy(ke, pe)
     plot_velocity_and_distance(t, v, d)
