@@ -1,9 +1,9 @@
-import math
 import scipy.constants as constants
 import matplotlib.pyplot as plt
 import numpy as np
 
-# todo: use numpy for array calculations
+from dataclasses import dataclass
+from typing import List
 
 
 def potential_energy(h, m):
@@ -71,17 +71,66 @@ def time_to_fall(v_0, h):
     return (2*h)/(v_0 + v_f)
 
 
-def simulate(time_step, total_time, initial_velocity, initial_distance, acceleration):
-    t = np.linspace(0, total_time, int(total_time/time_step))
-
-    d = distance(initial_velocity, initial_distance, acceleration, t)
-    v = velocity(initial_velocity, acceleration, t)
-
+def plot_velocity_and_distance(t, v, d):
     fig, axs = plt.subplots(2)
     axs[0].plot(t, d)
     axs[1].plot(t, v)
     plt.show()
 
 
+def plot_energy(ke, pe):
+    plt.plot(ke)
+    plt.plot(pe)
+    plt.show()
+
+
+def simulate_0d(time_step, total_time, initial_velocity, initial_distance, acceleration):
+    t = np.linspace(0, total_time, int(total_time/time_step))
+
+    d = distance(initial_velocity, initial_distance, acceleration, t)
+    v = velocity(initial_velocity, acceleration, t)
+
+    mass = 5
+    ke = kinetic_energy(mass, v)
+    pe = potential_energy(np.max(d) - d, mass)
+    pe = potential_energy(np.max(d) - d, mass)
+
+    plot_energy(ke, pe)
+    plot_velocity_and_distance(t, v, d)
+
+
+@dataclass
+class Vector1D:
+    initial_position: float
+    initial_velocity: float
+    acceleration: float
+
+
+def simulate_1d(time_step, total_time, vectors: List[Vector1D]):
+    t = np.linspace(0, total_time, int(total_time / time_step))
+    d_n = np.zeros(t.size)
+    v_n = np.zeros(t.size)
+    for vec in vectors:
+        d_n = np.row_stack((
+            d_n,
+            distance(vec.initial_velocity, vec.initial_position, vec.acceleration, t)
+        ))
+        v_n = np.row_stack((
+            v_n,
+            velocity(vec.initial_velocity, vec.acceleration, t)
+        ))
+
+    d = np.sum(d_n, axis=0)
+    v = np.sum(v_n, axis=0)
+
+    plot_velocity_and_distance(t, v, d)
+
+
 if __name__ == '__main__':
-    simulate(0.1, 10, 0, 0, constants.g)
+    simulate_0d(0.1, 10, 0, 0, constants.g)
+
+    initial_position = 0
+    simulate_1d(0.1, 10, [
+        Vector1D(initial_position, 0, constants.g),
+        Vector1D(initial_position, -100, 20)
+    ])
