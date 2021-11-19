@@ -49,28 +49,6 @@ def velocity(v_0, a, t):
     return v_0 + a*t
 
 
-def final_velocity(v_0, a, d):
-    """
-
-    :param v_0:
-    :param a:
-    :param d:
-    :return:
-    """
-    return v_0**2 + 2*a*d
-
-
-def time_to_fall(v_0, h):
-    """
-
-    :param v_0: velocity (m/s)
-    :param h: height (m)
-    :return: time (s)
-    """
-    v_f = final_velocity(v_0, constants.g, h)
-    return (2*h)/(v_0 + v_f)
-
-
 def plot_velocity_and_distance(t, v, d):
     fig, axs = plt.subplots(2)
     axs[0].plot(t, d)
@@ -84,18 +62,10 @@ def plot_energy(ke, pe):
     plt.show()
 
 
-def simulate_0d(time_step, total_time, initial_velocity, initial_distance, acceleration):
-    t = np.linspace(0, total_time, int(total_time/time_step))
-
-    d = distance(initial_velocity, initial_distance, acceleration, t)
-    v = velocity(initial_velocity, acceleration, t)
-
-    mass = 5
-    ke = kinetic_energy(mass, v)
-    pe = potential_energy(np.max(d) - d, mass)
-
-    plot_energy(ke, pe)
-    plot_velocity_and_distance(t, v, d)
+def plot_3d(x, y, z):
+    ax = plt.axes(projection='3d')
+    ax.plot3D(x, y, z)
+    plt.show()
 
 
 @dataclass
@@ -147,7 +117,6 @@ def simulate_1d(time_step, total_time, vectors: List[PointVectorGroup1D]):
 
 
 if __name__ == '__main__':
-    simulate_0d(0.1, 10, 0, 0, constants.g)
 
     simulate_1d(0.1, 10, [
         PointVectorGroup1D(0, [
