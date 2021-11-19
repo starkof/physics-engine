@@ -99,37 +99,64 @@ def simulate_0d(time_step, total_time, initial_velocity, initial_distance, accel
 
 
 @dataclass
-class Vector1D:
-    initial_position: float
+class PointVector1D:
     initial_velocity: float
     acceleration: float
+    initial_position: float = 0
 
 
-def simulate_1d(time_step, total_time, vectors: List[Vector1D]):
+@dataclass
+class PointVectorGroup1D:
+    point: float
+    vectors: List[PointVector1D]
+
+    resolved_vector: PointVector1D = PointVector1D(0, 0, 0)
+
+    def resolve(self):
+        for v in self.vectors:
+            self.resolved_vector.initial_velocity += v.initial_velocity
+            self.resolved_vector.acceleration += v.acceleration
+        self.resolved_vector.initial_position = self.point
+
+    def get_resolved(self):
+        return self.resolved_vector
+
+
+def simulate_1d(time_step, total_time, vectors: List[PointVectorGroup1D]):
     t = np.linspace(0, total_time, int(total_time / time_step))
     d_n = np.zeros(t.size)
     v_n = np.zeros(t.size)
+
     for vec in vectors:
+        vec.resolve()
+        resolved = vec.get_resolved()
+
         d_n = np.row_stack((
             d_n,
-            distance(vec.initial_velocity, vec.initial_position, vec.acceleration, t)
+            distance(resolved.initial_velocity, resolved.initial_position, resolved.acceleration, t)
         ))
         v_n = np.row_stack((
             v_n,
-            velocity(vec.initial_velocity, vec.acceleration, t)
+            velocity(resolved.initial_velocity, resolved.acceleration, t)
         ))
 
-    d = np.sum(d_n, axis=0)
-    v = np.sum(v_n, axis=0)
+    assert v_n.shape == d_n.shape, 'Velocity and distance matrices must have the same shape'
 
-    plot_velocity_and_distance(t, v, d)
+    for i in range(1, d_n.shape[0]):
+        plot_velocity_and_distance(t, v_n[i], d_n[i])
 
 
 if __name__ == '__main__':
     simulate_0d(0.1, 10, 0, 0, constants.g)
 
-    initial_position = 0
     simulate_1d(0.1, 10, [
-        Vector1D(initial_position, 0, constants.g),
-        Vector1D(initial_position, -100, 20)
+        PointVectorGroup1D(0, [
+            PointVector1D(0, constants.g),
+            PointVector1D(-100, 20)
+        ]),
+        PointVectorGroup1D(1000, [
+            PointVector1D(0, constants.g),
+            PointVector1D(0, 20),
+            PointVector1D(0, 10)
+        ])
     ])
