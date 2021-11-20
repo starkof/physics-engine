@@ -1,4 +1,4 @@
-import scipy.constants as constants
+import scipy.constants as const
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
@@ -18,7 +18,7 @@ def potential_energy(h, m):
     :param m: mass in kilograms
     :return: potential energy measured in joules
     """
-    return m * constants.g * h
+    return m * const.g * h
 
 
 def kinetic_energy(m, v):
