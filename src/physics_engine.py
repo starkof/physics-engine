@@ -77,7 +77,7 @@ def plot_3d(x, y, z):
 class PointVector:
     velocity: npt.NDArray
     acceleration: npt.NDArray
-    point: npt.NDArray = np.array([[0], [0]])
+    point: npt.NDArray = array(0, 0, 0)
 
 
 @dataclass
@@ -147,34 +147,4 @@ def main():
 
 
 if __name__ == '__main__':
-    # # v = PointVectorGroup2D()
-    # arr = Array2D(1, 2)
-    # # print(arr.__to_np())
-    # print(arr)
     main()
-
-    # a = Array2D(1, 2)
-    # arr = np.array([[1], [2]])
-    # b = np.array([[1, 2, 3], [4, 5, 6]])
-    # print(b)
-    # print(a)
-    # print((a + b)[0][0])
-    # print(b + a)
-    # print(type((b + a)[0][0][0]))
-    # print(b + arr)
-    # print(arr + b)
-    # print(0.5 + a)
-    # print(a + a)
-    # print(a + 0.5)
-
-    # print()
-    # print(a - 1)
-    # print(1 - a)
-    # print(a - a)
-    # print()
-    # print(a**2)
-    # print()
-    # print(2 * a)
-    # print(a * 2)
-    # print(a * a)
-
