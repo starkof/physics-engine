@@ -1,9 +1,10 @@
 import scipy.constants as constants
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List
 
 
 def potential_energy(h, m):
@@ -13,7 +14,7 @@ def potential_energy(h, m):
     :param m: mass in kilograms
     :return: potential energy measured in joules
     """
-    return m * h * constants.g
+    return m * constants.g * h
 
 
 def kinetic_energy(m, v):
@@ -70,7 +71,7 @@ def plot_3d(x, y, z):
 
 @dataclass
 class PointVector1D:
-    initial_velocity: float
+    velocity: float
     acceleration: float
     point: float = 0
 
@@ -84,19 +85,12 @@ class PointVectorGroup1D:
 
     def resolve(self):
         for v in self.vectors:
-            self.resolved_vector.initial_velocity += v.initial_velocity
+            self.resolved_vector.velocity += v.velocity
             self.resolved_vector.acceleration += v.acceleration
         self.resolved_vector.point = self.point
 
     def get_resolved(self):
         return self.resolved_vector
-
-
-@dataclass
-class PointVector2D:
-    initial_velocity: Tuple[float, float]
-    acceleration: Tuple[float, float]
-    point: Tuple[float, float] = (0, 0)
 
 
 def simulate_1d(time_step, total_time, vectors: List[PointVectorGroup1D]):
@@ -110,11 +104,11 @@ def simulate_1d(time_step, total_time, vectors: List[PointVectorGroup1D]):
 
         d_n = np.row_stack((
             d_n,
-            distance(resolved.initial_velocity, resolved.point, resolved.acceleration, t)
+            distance(resolved.velocity, resolved.point, resolved.acceleration, t)
         ))
         v_n = np.row_stack((
             v_n,
-            velocity(resolved.initial_velocity, resolved.acceleration, t)
+            velocity(resolved.velocity, resolved.acceleration, t)
         ))
 
     assert v_n.shape == d_n.shape, 'Velocity and distance matrices must have the same shape'
@@ -123,16 +117,81 @@ def simulate_1d(time_step, total_time, vectors: List[PointVectorGroup1D]):
         plot_velocity_and_distance(t, v_n[i], d_n[i])
 
 
-if __name__ == '__main__':
+# todo: consider having a common parent for Vector2D and Point2D
+@dataclass
+class Vector2D:
+    x: float
+    y: float
 
-    simulate_1d(0.1, 10, [
-        PointVectorGroup1D(0, [
-            PointVector1D(0, constants.g),
-            PointVector1D(-100, 20)
-        ]),
-        PointVectorGroup1D(1000, [
-            PointVector1D(0, constants.g),
-            PointVector1D(0, 20),
-            PointVector1D(0, 10)
-        ])
-    ])
+    def __str__(self):
+        return '[{}\n{}]'.format(self.x, self.y)
+
+    def __add__(self, other):
+        x = self.x + other.x
+        y = self.y + other.y
+
+        return Vector2D(x, y)
+
+
+@dataclass
+class Point2D:
+    x: float
+    y: float
+
+    def __str__(self):
+        return '[{}\n{}]'.format(self.x, self.y)
+
+    def __add__(self, other):
+        x = self.x + other.x
+        y = self.y + other.y
+
+        return Vector2D(x, y)
+
+
+@dataclass
+class PointVector2D:
+    velocity: Vector2D = Vector2D(0, 0)
+    acceleration: Vector2D = Vector2D(0, 0)
+    point: Point2D = Point2D(0, 0)
+
+
+@dataclass
+class PointVectorGroup2D:
+    point: Point2D
+    vectors: List[PointVector2D]
+
+    resolved_vector: PointVector2D()
+
+    def resolve(self):
+        for v in self.vectors:
+            self.resolved_vector.velocity += v.velocity
+            self.resolved_vector.acceleration += v.acceleration
+        self.resolved_vector.point = self.point
+
+    def get_resolved(self):
+        return self.resolved_vector
+
+
+def simulate_2d(time_step, total_time, vectors: List[PointVector2D]):
+    t = np.linspace(0, total_time, int(total_time / time_step))
+    pass
+
+
+def main():
+    # simulate_1d(0.1, 10, [
+    #     PointVectorGroup1D(0, [
+    #         PointVector1D(0, constants.g),
+    #         PointVector1D(-100, 20)
+    #     ]),
+    #     PointVectorGroup1D(1000, [
+    #         PointVector1D(0, constants.g),
+    #         PointVector1D(0, 20),
+    #         PointVector1D(0, 10)
+    #     ])
+    # ])
+    pass
+
+
+if __name__ == '__main__':
+    # v = PointVectorGroup2D()
+    pass
