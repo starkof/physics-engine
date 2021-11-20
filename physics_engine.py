@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 
 
@@ -36,7 +36,15 @@ def distance(v_0, d_0, a, t):
     :param t: time in seconds (s)
     :return: distance travelled in meters
     """
-    return v_0*t + 0.5*a*t**2 + d_0
+    # print(v_0*t)
+    # print(0.5*a*t**2)
+    # print(d_0)
+    # print()
+    # print(v_0*t + 0.5*a*t**2)
+    # print(v_0*t + 0.5*a*t**2 + d_0)
+
+    # d_0 must come first to ensure correct output with numpy
+    return d_0 + v_0*t + 0.5*a*t**2
 
 
 def velocity(v_0, a, t):
@@ -117,50 +125,111 @@ def simulate_1d(time_step, total_time, vectors: List[PointVectorGroup1D]):
         plot_velocity_and_distance(t, v_n[i], d_n[i])
 
 
-# todo: consider having a common parent for Vector2D and Point2D
 @dataclass
-class Vector2D:
+class Array2D:
     x: float
     y: float
 
-    def __str__(self):
-        return '[{}\n{}]'.format(self.x, self.y)
-
-    def __add__(self, other):
-        x = self.x + other.x
-        y = self.y + other.y
-
-        return Vector2D(x, y)
-
-
-@dataclass
-class Point2D:
-    x: float
-    y: float
+    def _to_np(self):
+        return np.array([[self.x], [self.y]])
 
     def __str__(self):
-        return '[{}\n{}]'.format(self.x, self.y)
+        return '[[{}]\n [{}]]'.format(self.x, self.y)
 
     def __add__(self, other):
-        x = self.x + other.x
-        y = self.y + other.y
+        if type(other) == Array2D:
+            return self._to_np() + other._to_np()
 
-        return Vector2D(x, y)
+        return self._to_np() + other
+
+    def __radd__(self, other):
+        if type(other) == Array2D:
+            return self._to_np() + other._to_np()
+
+        return self._to_np() + other
+        # return self.__add__(other)
+
+    def __pos__(self):
+        return self._to_np()
+
+    def __sub__(self, other):
+        if type(other) == Array2D:
+            return self._to_np() - other._to_np()
+        return self._to_np() - other
+
+    def __rsub__(self, other):
+        if type(other) == Array2D:
+            return other._to_np() - self._to_np()
+
+        return other - self._to_np()
+
+    def __neg__(self):
+        return -1 * self._to_np()
+
+    def __mul__(self, other):
+        if type(other) == Array2D:
+            return other._to_np() * self._to_np()
+
+        return self._to_np() * other
+
+    def __rmul__(self, other):
+        if type(other) == Array2D:
+            return other._to_np() * self._to_np()
+
+        return other * self._to_np()
+
+    def __truediv__(self, other):
+        if type(other) == Array2D:
+            return self._to_np() / other._to_np()
+
+        return self._to_np() / other
+
+    def __rtruediv__(self, other):
+        if type(other) == Array2D:
+            return other._to_np() / self._to_np()
+
+        return other / self._to_np()
+
+    def __floordiv__(self, other):
+        if type(other) == Array2D:
+            return self._to_np() // other._to_np()
+
+        return self._to_np() // other
+
+    def __rfloordiv__(self, other):
+        if type(other) == Array2D:
+            return other._to_np() // self._to_np()
+
+        return other // self._to_np()
+
+    def __mod__(self, other):
+        if type(other) == Array2D:
+            return other._to_np() % self._to_np()
+        return self._to_np() % other
+
+    def __rmod__(self, other):
+        if type(other) == Array2D:
+            return other._to_np() % self._to_np()
+
+        return other % self._to_np()
+
+    def __pow__(self, power, modulo=None):
+        return self._to_np() ** power
 
 
 @dataclass
 class PointVector2D:
-    velocity: Vector2D = Vector2D(0, 0)
-    acceleration: Vector2D = Vector2D(0, 0)
-    point: Point2D = Point2D(0, 0)
+    velocity: Array2D
+    acceleration: Array2D
+    point: Array2D = Array2D(0, 0)
 
 
 @dataclass
 class PointVectorGroup2D:
-    point: Point2D
+    point: Array2D
     vectors: List[PointVector2D]
 
-    resolved_vector: PointVector2D()
+    resolved_vector: PointVector2D = PointVector2D(Array2D(0, 0), Array2D(0, 0))
 
     def resolve(self):
         for v in self.vectors:
@@ -172,9 +241,43 @@ class PointVectorGroup2D:
         return self.resolved_vector
 
 
-def simulate_2d(time_step, total_time, vectors: List[PointVector2D]):
+@dataclass
+class SimulationResult:
+    time: npt.NDArray = np.array([])
+    positions: List[npt.NDArray] = field(default_factory=list)
+    velocities: List[npt.NDArray] = field(default_factory=list)
+
+    def append_velocity(self, velocity_matrix: npt.NDArray):
+        self.velocities.append(velocity_matrix)
+
+    def append_position(self, position_matrix: npt.NDArray):
+        self.positions.append(position_matrix)
+
+    def set_time(self, time_array: npt.NDArray):
+        self.time = time_array
+
+
+def simulate_2d(time_step, total_time, vectors: List[PointVectorGroup2D]):
     t = np.linspace(0, total_time, int(total_time / time_step))
-    pass
+    result = SimulationResult()
+
+    for vec in vectors:
+        vec.resolve()
+        resolved = vec.get_resolved()
+        v = velocity(resolved.velocity, resolved.acceleration, t)
+        d = distance(resolved.velocity, resolved.point, resolved.acceleration, t)
+
+        # print(resolved.velocity)
+        # print(resolved.point)
+        # print(resolved.acceleration)
+
+        # print(v.shape)
+        # print(d.shape)
+
+        result.append_velocity(v)
+        result.append_position(d)
+
+    return result
 
 
 def main():
@@ -189,9 +292,51 @@ def main():
     #         PointVector1D(0, 10)
     #     ])
     # ])
-    pass
+    res = simulate_2d(0.1, 10, [
+        PointVectorGroup2D(Array2D(0, 0), [
+            PointVector2D(Array2D(5, 5), Array2D(5, 5))
+        ])
+    ])
+
+    print(res.positions)
+    print(res.velocities)
+    # print(res.positions[0][0][0])
+    # plot_3d()
+
+    # ax = plt.axes(projection='3d')
+    # ax.plot3D(res.time, res.positions)
+    # plt.show()
 
 
 if __name__ == '__main__':
-    # v = PointVectorGroup2D()
-    pass
+    # # v = PointVectorGroup2D()
+    # arr = Array2D(1, 2)
+    # # print(arr.__to_np())
+    # print(arr)
+    main()
+
+    # a = Array2D(1, 2)
+    # arr = np.array([[1], [2]])
+    # b = np.array([[1, 2, 3], [4, 5, 6]])
+    # print(b)
+    # print(a)
+    # print((a + b)[0][0])
+    # print(b + a)
+    # print(type((b + a)[0][0][0]))
+    # print(b + arr)
+    # print(arr + b)
+    # print(0.5 + a)
+    # print(a + a)
+    # print(a + 0.5)
+
+    # print()
+    # print(a - 1)
+    # print(1 - a)
+    # print(a - a)
+    # print()
+    # print(a**2)
+    # print()
+    # print(2 * a)
+    # print(a * 2)
+    # print(a * a)
+
