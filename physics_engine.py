@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple
 
 
 def potential_energy(h, m):
@@ -72,7 +72,7 @@ def plot_3d(x, y, z):
 class PointVector1D:
     initial_velocity: float
     acceleration: float
-    initial_position: float = 0
+    point: float = 0
 
 
 @dataclass
@@ -86,10 +86,17 @@ class PointVectorGroup1D:
         for v in self.vectors:
             self.resolved_vector.initial_velocity += v.initial_velocity
             self.resolved_vector.acceleration += v.acceleration
-        self.resolved_vector.initial_position = self.point
+        self.resolved_vector.point = self.point
 
     def get_resolved(self):
         return self.resolved_vector
+
+
+@dataclass
+class PointVector2D:
+    initial_velocity: Tuple[float, float]
+    acceleration: Tuple[float, float]
+    point: Tuple[float, float] = (0, 0)
 
 
 def simulate_1d(time_step, total_time, vectors: List[PointVectorGroup1D]):
@@ -103,7 +110,7 @@ def simulate_1d(time_step, total_time, vectors: List[PointVectorGroup1D]):
 
         d_n = np.row_stack((
             d_n,
-            distance(resolved.initial_velocity, resolved.initial_position, resolved.acceleration, t)
+            distance(resolved.initial_velocity, resolved.point, resolved.acceleration, t)
         ))
         v_n = np.row_stack((
             v_n,
