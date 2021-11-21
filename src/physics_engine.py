@@ -81,8 +81,8 @@ class PointVector:
     point: npt.NDArray = array(0, 0, 0)
 
 
-@dataclass
 # todo: consider named group that will be added to simulation result
+@dataclass
 class PointVectorGroup:
     point: npt.NDArray
     vectors: List[PointVector]
