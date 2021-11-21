@@ -7,8 +7,9 @@ from dataclasses import dataclass, field
 from typing import List
 
 
-def array(x, y, z):
-    return np.array([[x], [y], [z]])
+def array(*args):
+    assert len(args) > 0, 'Array must have one or more elements'
+    return np.array([[x] for x in args])
 
 
 def potential_energy(h, m):
@@ -84,20 +85,22 @@ class PointVector:
 class PointVectorGroup:
     point: npt.NDArray
     vectors: List[PointVector]
+    dimensions: int = 2
 
-    resolved_vector: PointVector = PointVector(array(0, 0, 0), array(0, 0, 0))
+    __resolved_vector: PointVector = PointVector(array(0), array(0))
 
     def resolve(self):
+        self.__resolved_vector = PointVector(array(*([0] * self.dimensions)), array(*([0] * self.dimensions)))
         for v in self.vectors:
-            assert v.velocity.shape == (3, 1), '3D array must have 3 rows and 1 column'
-            assert v.acceleration.shape == (3, 1), '3D array must have 3 rows and 1 column'
+            assert v.velocity.shape == (self.dimensions, 1) and v.acceleration.shape == (self.dimensions, 1), \
+                '{0}D array must have {0} rows and 1 column'.format(self.dimensions)
 
-            self.resolved_vector.velocity += v.velocity
-            self.resolved_vector.acceleration += v.acceleration
-        self.resolved_vector.point = self.point
+            self.__resolved_vector.velocity += v.velocity
+            self.__resolved_vector.acceleration += v.acceleration
+        self.__resolved_vector.point = self.point
 
     def get_resolved(self):
-        return self.resolved_vector
+        return self.__resolved_vector
 
 
 @dataclass
@@ -116,7 +119,7 @@ class SimulationResult:
         self.time = time_array
 
 
-def simulate(time_step, total_time, vectors: List[PointVectorGroup]):
+def simulate(time_step, total_time, vectors: List[PointVectorGroup]) -> SimulationResult:
     t = np.linspace(0, total_time, int(total_time / time_step))
     result = SimulationResult()
 
@@ -133,17 +136,33 @@ def simulate(time_step, total_time, vectors: List[PointVectorGroup]):
 
 
 def main():
+    dimensions = 3
     res = simulate(0.5, 10, [
-        PointVectorGroup(array(0, 0, 0), [
-            PointVector(array(5, 5, 5), array(5, 5, 5))
-        ]),
-        PointVectorGroup(array(0, 0, 0), [
-            PointVector(array(5, 4, 3), array(2, 1, 0))
-        ])
+        PointVectorGroup(array(0, 0, 0),
+                         [
+                             PointVector(array(5, 5, 5), array(5, 5, 5))
+                         ],
+                         dimensions),
+        PointVectorGroup(array(0, 0, 0),
+                         [
+                             PointVector(array(5, 4, 3), array(2, 1, 0))
+                         ],
+                         dimensions)
     ])
-
-    print(res.positions)
-    print(res.positions)
+    #
+    # print(res.positions)
+    # print(res.positions)
+    # v = PointVectorGroup(array(1, 2, 3), [], 3)
+    # v2 = PointVectorGroup(array(0, 0, 0),
+    #                       [
+    #                           PointVector(array(5, 5, 5), array(5, 5, 5))
+    #                       ]
+    #                       )
+    # print(v.dimensions)
+    # print(v2.dimensions)
+    a = array(1,2,3)
+    print(a)
+    print(type(a))
 
 
 if __name__ == '__main__':
