@@ -149,20 +149,6 @@ def main():
                          ],
                          dimensions)
     ])
-    #
-    # print(res.positions)
-    # print(res.positions)
-    # v = PointVectorGroup(array(1, 2, 3), [], 3)
-    # v2 = PointVectorGroup(array(0, 0, 0),
-    #                       [
-    #                           PointVector(array(5, 5, 5), array(5, 5, 5))
-    #                       ]
-    #                       )
-    # print(v.dimensions)
-    # print(v2.dimensions)
-    a = array(1,2,3)
-    print(a)
-    print(type(a))
 
 
 if __name__ == '__main__':
