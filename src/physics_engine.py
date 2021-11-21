@@ -82,6 +82,7 @@ class PointVector:
 
 
 @dataclass
+# todo: consider named group that will be added to simulation result
 class PointVectorGroup:
     point: npt.NDArray
     vectors: List[PointVector]
@@ -119,8 +120,8 @@ class SimulationResult:
         self.time = time_array
 
 
-def simulate(time_step, total_time, vectors: List[PointVectorGroup]) -> SimulationResult:
-    t = np.linspace(0, total_time, int(total_time / time_step))
+def simulate(time_divisions, total_time, vectors: List[PointVectorGroup]) -> SimulationResult:
+    t = np.linspace(0, total_time, time_divisions)
     result = SimulationResult()
 
     for vec in vectors:
@@ -131,25 +132,6 @@ def simulate(time_step, total_time, vectors: List[PointVectorGroup]) -> Simulati
 
         result.append_velocity(v)
         result.append_position(d)
+        result.set_time(t)
 
     return result
-
-
-def main():
-    dimensions = 3
-    res = simulate(0.5, 10, [
-        PointVectorGroup(array(0, 0, 0),
-                         [
-                             PointVector(array(5, 5, 5), array(5, 5, 5))
-                         ],
-                         dimensions),
-        PointVectorGroup(array(0, 0, 0),
-                         [
-                             PointVector(array(5, 4, 3), array(2, 1, 0))
-                         ],
-                         dimensions)
-    ])
-
-
-if __name__ == '__main__':
-    main()
